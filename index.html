@@ -222,15 +222,8 @@ $('pdf').onclick=async()=>{
   const t=d.splitTextToSize((i+1)+'. '+(ok?'[OK] ':'[X] ')+q[0]+'  Réponse : '+a+(ok?'':'  | Correct : '+(q[1]?q[1][q[2]]:q[3])),170);
   d.text(t,20,y);y+=t.length*5+2});
  const fn=('Exercice-Word_'+nom+'_'+pre+'.pdf').replace(/\s+/g,'_'),st=$('info');
- st.textContent='Préparation du PDF...';
- try{
-  const dl=window.claude&&await claude.use('downloads');
-  if(dl){await dl.save({filename:fn,data:d.output('blob')});st.textContent='PDF enregistré.';return}
-  st.textContent='Téléchargement direct indisponible : utilisez la version imprimable ci-dessous.';
- }catch(e){
-  if(e&&e.code==='declined'){st.textContent='Téléchargement annulé.';return}
-  st.textContent='Téléchargement impossible ('+(e&&(e.code||e.message)||e)+'). Utilisez la version imprimable ci-dessous.';
- }
+ try{d.save(fn);st.textContent='PDF téléchargé.';return}
+ catch(e){st.textContent='Téléchargement impossible : utilisez la version imprimable ci-dessous.'}
  printable();
 };
 function printable(){
