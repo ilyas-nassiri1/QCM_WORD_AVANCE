@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>Exercice Microsoft Word</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f6fb;--card:#fff;--tx:#1b2333;--mu:#667;--ac:#2b579a;--ok:#1a8a4a;--ko:#c62828;--bd:#d8deea}
+:root:not([data-theme="light"]){}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121722;--card:#1c2433;--tx:#e8edf7;--mu:#9aa6bd;--ac:#6a9cf0;--bd:#2c3750}}
+:root[data-theme="dark"]{--bg:#121722;--card:#1c2433;--tx:#e8edf7;--mu:#9aa6bd;--ac:#6a9cf0;--bd:#2c3750}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,Segoe UI,Arial,sans-serif}
+*{box-sizing:border-box}
+.w{max-width:760px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:14px}
+h1{margin:0 0 4px;color:var(--ac)}
+input[type=text]{width:100%;padding:12px;border:1px solid var(--bd);border-radius:8px;font-size:16px;margin:6px 0 12px;background:var(--bg);color:var(--tx)}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:16px;cursor:pointer}
+button:disabled{opacity:.5}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#t{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+#t.low{color:var(--ko)}
+.q b{display:block;margin-bottom:8px}
+label{display:block;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;margin:6px 0;cursor:pointer}
+label:hover{border-color:var(--ac)}
+label.ok{background:rgba(26,138,74,.18);border-color:var(--ok)}
+label.ko{background:rgba(198,40,40,.15);border-color:var(--ko)}
+.hide{display:none}
+.score{font-size:42px;font-weight:800;color:var(--ac)}
+.mu{color:var(--mu);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font:inherit;background:var(--bg);color:var(--tx);resize:vertical}
+.chk{margin-top:8px;padding:8px 14px}
+@media print{.bar,.row,#start{display:none}}
+</style></head><body><div class="w">
+
+<div id="start" class="card">
+<h1>Exercice Microsoft Word</h1>
+<p class="mu">100 questions · Sans limite de temps · Correction immédiate · 1 point par bonne réponse</p>
+<label style="border:0;padding:0;cursor:default">Nom</label><input type="text" id="nom" autocomplete="family-name">
+<label style="border:0;padding:0;cursor:default">Prénom</label><input type="text" id="pre" autocomplete="given-name">
+<button id="go">Commencer l'exercice</button>
+</div>
+
+<div id="exam" class="hide">
+<div class="bar"><div><b id="who"></b><div class="mu" id="prog"></div></div><div id="t">01:30:00</div></div>
+<div id="qs"></div>
+<button id="fin">Terminer et voir la note</button>
+</div>
+
+<div id="res" class="hide card" style="text-align:center">
+<h1>Résultat</h1><div id="rwho"></div>
+<div class="score" id="sc"></div><div id="msg" class="mu"></div><br>
+<div class="row" style="justify-content:center"><button id="pdf">Exporter en PDF</button><!--<button id="rev" style="background:#667">Voir la correction</button>--></div>
+<p class="mu" id="info"></p>
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const Q=[
+["Quelle extension a un document Word moderne ?",[".doc",".docx",".dotx",".wrd"],1],
+["Quel raccourci enregistre un document ?",["Ctrl+S","Ctrl+P","Ctrl+E","Ctrl+O"],0],
+["Quel raccourci met le texte sélectionné en gras ?",["Ctrl+I","Ctrl+U","Ctrl+G","Ctrl+B+A"],2],
+["Quel raccourci annule la dernière action ?",["Ctrl+Y","Ctrl+Z","Ctrl+X","Ctrl+A"],1],
+["Quel raccourci sélectionne tout le document ?",["Ctrl+A","Ctrl+T","Ctrl+E","Ctrl+L"],0],
+["Quel onglet permet d'insérer un tableau ?",["Accueil","Mise en page","Insertion","Références"],2],
+["Comment appelle-t-on la zone en haut de chaque page, répétée sur toutes les pages ?",["Pied de page","En-tête","Marge","Filigrane"],1],
+["Quel outil copie la mise en forme d'un texte vers un autre ?",["Reproduire la mise en forme","Remplacer","Collage spécial","Styles"],0],
+["Quelle fonctionnalité génère automatiquement une table des matières ?",["Les tabulations","Les styles de titre (Titre 1, Titre 2…)","Les colonnes","Les sauts de page"],1],
+["Quel raccourci insère un saut de page ?",["Ctrl+Entrée","Maj+Entrée","Alt+Entrée","Ctrl+Tab"],0],
+["Quelle option aligne le texte des deux côtés (marges gauche et droite) ?",["Aligner à gauche","Centrer","Justifier","Aligner à droite"],2],
+["Que fait Ctrl+H dans Word ?",["Ouvre l'aide","Ouvre Rechercher/Remplacer","Insère un lien hypertexte","Ferme le document"],1],
+["Dans quel onglet trouve-t-on les marges et l'orientation de la page ?",["Mise en page","Affichage","Révision","Insertion"],0],
+["Quel onglet contient le correcteur d'orthographe et le suivi des modifications ?",["Accueil","Références","Révision","Données"],2],
+["Que fait la fonction « Publipostage » ?",["Crée un PDF","Envoie des lettres personnalisées à plusieurs destinataires","Traduit le texte","Compresse les images"],1],
+["Quel format est idéal pour partager un document sans qu'il soit modifiable ?",["PDF","DOCX","TXT","RTF"],0],
+["Comment insère-t-on un numéro de page ?",["Onglet Insertion > Numéro de page","Onglet Accueil > Police","Onglet Affichage > Zoom","Onglet Révision > Commentaire"],0],
+["À quoi servent les tabulations ?",["À créer des images","À aligner le texte à des positions précises","À changer la police","À imprimer"],1],
+["Quel est l'interligne par défaut dans les versions récentes de Word ?",["1,0","1,08","2,0","3,0"],1],
+["Quel raccourci ouvre la boîte de dialogue d'impression ?",["Ctrl+P","Ctrl+I","Ctrl+N","Ctrl+D"],0],
+["Quel raccourci souligne le texte sélectionné ?",["Ctrl+U","Ctrl+S","Ctrl+L","Ctrl+B"],0],
+["Quel raccourci coupe la sélection ?",["Ctrl+C","Ctrl+X","Ctrl+V","Ctrl+K"],1],
+["Quel raccourci crée un nouveau document ?",["Ctrl+O","Ctrl+N","Ctrl+M","Ctrl+W"],1],
+["Quel raccourci ouvre un document existant ?",["Ctrl+N","Ctrl+P","Ctrl+O","Ctrl+Q"],2],
+["Quel raccourci centre le paragraphe ?",["Ctrl+E","Ctrl+R","Ctrl+L","Ctrl+J"],0],
+["Quel mode d'affichage montre la page comme à l'impression ?",["Mode Lecture","Mode Page","Mode Plan","Mode Brouillon"],1],
+["Dans quelle unité la taille de la police est-elle exprimée ?",["Pixels","Points","Centimètres","Pourcentages"],1],
+["Quelle est la marge par défaut d'un document Word ?",["1 cm","2,5 cm","5 cm","0 cm"],1],
+["Quel est le format de papier standard en France ?",["Letter","A3","A4","A5"],2],
+["Quelles sont les deux orientations de page ?",["Portrait et Paysage","Recto et Verso","Haut et Bas","Vertical seulement"],0],
+["À quoi sert un saut de section ?",["Appliquer une mise en page différente à une partie du document","Supprimer du texte","Compter les mots","Verrouiller le document"],0],
+["Dans quel onglet insère-t-on une note de bas de page ?",["Références","Affichage","Fichier","Données"],0],
+["Comment ajouter un titre numéroté sous une image ou un tableau ?",["Insérer une légende","Insérer un filigrane","Insérer un en-tête","Insérer un saut"],0],
+["Qu'est-ce qu'un filigrane ?",["Un texte ou une image en arrière-plan de la page","Une marge","Un style de tableau","Un commentaire"],0],
+["Comment fusionner des cellules d'un tableau ?",["Disposition > Fusionner les cellules","Insertion > Symbole","Révision > Traduire","Affichage > Règle"],0],
+["Où trouve-t-on le nombre de mots du document ?",["Révision > Statistiques","Insertion > Forme","Accueil > Police","Mise en page > Marges"],0],
+["Quel raccourci insère un lien hypertexte ?",["Ctrl+H","Ctrl+J","Ctrl+B","Ctrl+K"],3],
+["À quoi servent les styles ?",["À appliquer rapidement une mise en forme cohérente","À envoyer des mails","À créer des macros","À protéger le fichier"],0],
+["À quoi sert un commentaire ?",["Ajouter une remarque sans modifier le texte","Supprimer du texte","Changer la police","Imprimer"],0],
+["Que représente le symbole ¶ ?",["Une fin de paragraphe","Une page","Un tableau","Une image"],0],
+["Que fait Maj+Entrée ?",["Un saut de ligne sans nouveau paragraphe","Un saut de page","Ferme le document","Enregistre"],0],
+["Que fait Ctrl+Fin ?",["Va à la fin du document","Ferme Word","Supprime la ligne","Va à la fin de la ligne"],0],
+["Dans quel onglet règle-t-on le zoom ?",["Affichage","Révision","Insertion","Références"],0],
+["À quoi sert SmartArt ?",["À créer des schémas graphiques","À corriger l'orthographe","À créer un tableau Excel","À protéger"],0],
+["Comment organiser le texte en colonnes ?",["Mise en page > Colonnes","Accueil > Colonnes","Révision > Colonnes","Fichier > Colonnes"],0],
+["Que fait la touche F7 ?",["Lance le correcteur d'orthographe","Enregistre","Imprime","Ferme Word"],0],
+["Comment protéger un document par mot de passe ?",["Fichier > Informations > Protéger le document","Accueil > Police","Insertion > Page","Affichage > Macros"],0],
+["Que contient un fichier .dotx ?",["Un modèle de document","Un document protégé","Une image","Une feuille de calcul"],0],
+["Qu'est-ce que l'interligne ?",["L'espace entre les lignes d'un paragraphe","La taille de la police","Les marges","La couleur du texte"],0],
+["Où insère-t-on une citation et une bibliographie ?",["Références","Affichage","Accueil","Mise en page"],0],
+["Écrivez le raccourci clavier pour copier.",null,["ctrl ?\\+ ?c\\b"],"Ctrl+C"],
+["Écrivez le raccourci clavier pour coller.",null,["ctrl ?\\+ ?v\\b"],"Ctrl+V"],
+["Écrivez le raccourci clavier pour mettre en italique.",null,["ctrl ?\\+ ?i\\b"],"Ctrl+I"],
+["Écrivez le nom de l'onglet qui permet d'insérer une image.",null,["insertion"],"Insertion"],
+["Comment s'appelle la zone répétée en bas de chaque page ?",null,["pied"],"Pied de page"],
+["Quelle fonctionnalité permet de suivre les modifications d'un document ?",null,["suivi|suivre|track"],"Suivi des modifications (onglet Révision)"],
+["Quel style de titre applique-t-on à un titre principal ?",null,["titre ?1|heading ?1"],"Titre 1"],
+["Quelle commande permet d'enregistrer un document sous un autre nom ou format ?",null,["enregistrer sous"],"Enregistrer sous"],
+["Comment appelle-t-on le décalage vers la droite de la première ligne d'un paragraphe ?",null,["retrait|alinea"],"Retrait de première ligne (alinéa)"],
+["Écrivez l'extension d'un modèle de document Word moderne.",null,["dotx"],".dotx"],
+["Que permet le publipostage ?",["Générer des documents personnalisés à partir d'une liste de destinataires","Compresser des images","Traduire le texte","Créer un graphique"],0],
+["Quel onglet contient les outils de publipostage ?",["Révision","Publipostage","Affichage","Références"],1],
+["Quelles sources de données peut-on utiliser pour le publipostage ?",["Un fichier Excel, Access ou une liste Outlook","Uniquement PowerPoint","Une vidéo","Un fichier audio"],0],
+["Qu'est-ce que le document principal ?",["Le document contenant le texte commun et les champs de fusion","La liste des adresses","Le PDF final","Une enveloppe"],0],
+["Qu'est-ce qu'un champ de fusion ?",["Un espace réservé remplacé par les données de chaque destinataire","Un type de police","Une marge","Un style de titre"],0],
+["Comment insère-t-on le nom du destinataire dans la lettre ?",["Insérer un champ de fusion","Insérer un saut de page","Insérer une note","Insérer un symbole"],0],
+["Quel bouton permet de voir le résultat de la fusion avant de terminer ?",["Aperçu des résultats","Orthographe","Mode plan","Zoom"],0],
+["Quelle est la dernière étape du publipostage ?",["Terminer et fusionner","Enregistrer sous","Protéger le document","Exporter en HTML"],0],
+["Que doit contenir la première ligne d'une source de données Excel ?",["Les noms des colonnes (en-têtes)","Les totaux","Des images","Rien"],0],
+["Comment n'envoyer le courrier qu'à certains destinataires ?",["Modifier la liste de destinataires (filtrer)","Supprimer le document","Changer la police","Imprimer deux fois"],0],
+["Quels types de documents peut-on créer par publipostage ?",["Lettres, e-mails, enveloppes et étiquettes","Uniquement des lettres","Uniquement des e-mails","Uniquement des PDF"],0],
+["À quoi sert la règle « Si... Alors... Sinon » en publipostage ?",["À insérer un texte conditionnel selon les données","À compter les mots","À aligner le texte","À traduire"],0],
+["Que fait « Modifier des documents individuels » ?",["Crée un nouveau document contenant toutes les lettres fusionnées","Envoie sans vérifier","Supprime la liste","Ferme Word"],0],
+["Écrivez le nom de l'onglet qui contient le publipostage.",null,["publipostage"],"Publipostage"],
+["Comment appelle-t-on l'espace réservé remplacé par les données de chaque destinataire ?",null,["champ"],"Champ de fusion"],
+["Que faut-il appliquer aux titres pour créer une table des matières automatique ?",["Les styles de titre","Des tabulations","Des images","Du gras"],0],
+["Dans quel onglet insère-t-on une table des matières ?",["Références","Insertion","Révision","Affichage"],0],
+["Comment mettre à jour une table des matières ?",["Clic droit > Mettre à jour le champ","La retaper","Ctrl+Z","Fermer Word"],0],
+["Quel style utilise-t-on pour un sous-titre de niveau 2 ?",["Titre 2","Titre 1","Normal","Sous-titre 9"],0],
+["Quelle touche met à jour le champ sélectionné ?",["F9","F7","F5","F12"],0],
+["Que sont les points de suite d'une table des matières ?",["Les pointillés entre le titre et le numéro de page","Les puces","Les marges","Les en-têtes"],0],
+["Vous ajoutez un titre après avoir créé la table des matières. Que faire ?",["Mettre à jour la table","Rien, c'est automatique","Réinstaller Word","Convertir en PDF"],0],
+["Que fait Ctrl+clic sur une entrée de la table des matières ?",["Va directement au titre dans le document","Supprime l'entrée","Copie la ligne","Imprime la page"],0],
+["Que montre le volet de navigation ?",["Les titres du document pour s'y déplacer","Les images uniquement","Les erreurs","Les macros"],0],
+["Quelle différence entre « Numéros de page uniquement » et « Table entière » ?",["La table entière met aussi à jour les titres","Aucune différence","L'une supprime la table","L'une change la police"],0],
+["Quelle touche met à jour un champ dans Word ?",null,["f ?9"],"F9"],
+["Quel type de style faut-il appliquer à un titre pour qu'il apparaisse dans la table des matières ?",null,["titre|heading"],"Un style de titre (Titre 1, Titre 2...)"],
+["Comment s'appellent les pointillés entre le titre et le numéro de page ?",null,["points? de suite|pointille"],"Points de suite"],
+["Où crée-t-on des étiquettes ?",["Publipostage > Étiquettes","Accueil > Police","Révision > Étiquettes","Insertion > Tableau"],0],
+["Qu'est-ce qu'une planche d'étiquettes ?",["Une feuille autocollante contenant plusieurs étiquettes (adresses)","Un filigrane","Un style","Une note"],0],
+["Comment choisir le modèle de la planche d'étiquettes ?",["Options > Fournisseur et numéro de produit","Police","Marges","Interligne"],0],
+["Comment imprimer des étiquettes avec une adresse différente sur chacune ?",["Utiliser le publipostage de type Étiquettes","Les retaper une par une","Copier-coller la même","Utiliser un filigrane"],0],
+["Quelle commande reporte les modifications sur toutes les étiquettes ?",["Mettre à jour les étiquettes","Insérer un saut","Zoom","Fusionner les cellules"],0],
+["Comment les étiquettes sont-elles organisées dans Word ?",["Dans un tableau sans bordure","Dans une image","Dans un graphique","Dans des colonnes de titres"],0],
+["Comment imprimer la même étiquette sur toute la planche ?",["Cocher « Toute la page avec la même étiquette »","Fusionner les cellules","Supprimer le tableau","Cocher « Brouillon »"],0],
+["Comment voir les cellules d'une planche d'étiquettes sans bordures ?",["Afficher le quadrillage","Mode lecture","Zoom 500%","Supprimer le tableau"],0],
+["Où crée-t-on des enveloppes ?",["Publipostage > Enveloppes","Insertion > Enveloppes","Révision > Enveloppes","Accueil > Enveloppes"],0],
+["Dans quel onglet trouve-t-on la commande Étiquettes ?",null,["publipostage"],"Publipostage"],
+["Citez un fabricant de planches d'étiquettes proposé dans Word.",null,["avery|herma|zweckform"],"Avery (ou Herma, Zweckform...)"],
+["Quelle option imprime la même étiquette sur toute la page ?",null,["meme|toute la page"],"Toute la page avec la même étiquette"]
+];
+const $=id=>document.getElementById(id);
+const TOTAL=90*60;let left=TOTAL,iv=null,done=false,nom='',pre='',note=0,ans={};
+const pad=n=>String(n).padStart(2,'0');
+function fmt(s){return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60)}
+const nz=t=>(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const good=i=>{const q=Q[i];return q[1]?ans[i]===q[2]:ans[i]&&q[2].every(r=>new RegExp(r).test(nz(ans[i])))};
+const upd=()=>$('prog').textContent=Object.keys(ans).length+' / '+Q.length+' réponses';
+function reveal(i){document.querySelectorAll('label[data-q="'+i+'"]').forEach(l=>{const o=+l.dataset.o;if(o===Q[i][2])l.classList.add('ok');else if(ans[i]===o)l.classList.add('ko');l.querySelector('input').disabled=true})}
+function revealW(i){const t=document.querySelector('textarea[data-w="'+i+'"]');if(!t||t.dataset.r)return;t.dataset.r=1;t.disabled=true;const g=good(i);t.style.borderColor=g?'var(--ok)':'var(--ko)';const b=t.parentNode.querySelector('.chk');if(b)b.remove();t.insertAdjacentHTML('afterend','<div class="mu">'+(g?'✔ Correct : ':'✘ Réponse attendue : ')+Q[i][3]+'</div>')}
+function build(){
+ $('qs').innerHTML=Q.map((q,i)=>{
+  if(!q[1])return `<div class="card q"><b>${i+1}. ✍ ${q[0]}</b><textarea data-w="${i}" rows="2" placeholder="Votre réponse..."></textarea><button class="chk" data-c="${i}">Vérifier</button></div>`;
+  const ord=q[1].map((_,j)=>j).sort(()=>Math.random()-.5);
+  return `<div class="card q"><b>${i+1}. ${q[0]}</b>`+ord.map(j=>`<label data-q="${i}" data-o="${j}"><input type="radio" name="q${i}" value="${j}"> ${q[1][j]}</label>`).join('')+'</div>'}).join('');
+ document.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{ans[r.name.slice(1)]=+r.value;upd();reveal(+r.name.slice(1))});
+ document.querySelectorAll('textarea').forEach(t=>t.oninput=()=>{const v=t.value.trim();if(v)ans[t.dataset.w]=v;else delete ans[t.dataset.w];upd()});
+ document.querySelectorAll('.chk').forEach(b=>b.onclick=()=>revealW(+b.dataset.c));
+}
+$('go').onclick=()=>{
+ nom=$('nom').value.trim();pre=$('pre').value.trim();
+ if(!nom||!pre){alert('Veuillez saisir le nom et le prénom.');return}
+ $('start').classList.add('hide');$('exam').classList.remove('hide');
+ $('who').textContent=pre+' '+nom.toUpperCase();$('prog').textContent='0 / '+Q.length+' réponses';
+ build();
+ $('t').textContent='Exercice';
+};
+$('fin').onclick=()=>{const n=Q.length-Object.keys(ans).length;if(!n||confirm(n+' question(s) sans réponse. Terminer quand même ?'))finish(false)};
+function finish(auto){
+ if(done)return;done=true;clearInterval(iv);
+ note=Q.reduce((s,q,i)=>s+(good(i)?1:0),0);
+ document.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);
+ $('exam').classList.add('hide');$('res').classList.remove('hide');
+ $('rwho').innerHTML='<b>'+pre+' '+nom.toUpperCase()+'</b>';
+ $('sc').textContent=note+' / '+Q.length;
+ $('msg').textContent=(note>=Q.length/2?'Réussi':'Non réussi');
+ window.scrollTo(0,0);
+}
+$('rev').onclick=()=>{
+ $('exam').classList.remove('hide');document.querySelector('.bar').classList.add('hide');$('fin').classList.add('hide');
+ document.querySelectorAll('label[data-q]').forEach(l=>{const q=+l.dataset.q,o=+l.dataset.o;
+  if(o===Q[q][2])l.classList.add('ok');else if(ans[q]===o)l.classList.add('ko');
+  const r=l.querySelector('input');r.checked=ans[q]===o});
+ document.querySelectorAll('textarea').forEach(t=>revealW(+t.dataset.w));
+ $('exam').scrollIntoView();
+};
+$('pdf').onclick=async()=>{
+ const {jsPDF}=window.jspdf||{};
+ if(!jsPDF){window.print();return}
+ const d=new jsPDF({unit:'mm',format:'a4'});let y=20;
+ d.setFontSize(20);d.text('Exercice Microsoft Word - Résultat',105,y,{align:'center'});y+=14;
+ d.setFontSize(13);d.text('Nom : '+nom.toUpperCase(),20,y);y+=8;d.text('Prénom : '+pre,20,y);y+=8;
+ d.text('Date : '+new Date().toLocaleString('fr-FR'),20,y);y+=8;
+ y+=6;
+ d.setFontSize(26);d.text('Note : '+note+' / '+Q.length,20,y);y+=8;
+ d.setFontSize(13);d.text('Soit '+(note/Q.length*20).toFixed(1)+' / 20  -  '+(note>=Q.length/2?'Réussi':'Non réussi'),20,y);y+=14;
+ d.setFontSize(10);
+ Q.forEach((q,i)=>{if(y>275){d.addPage();y=20}
+  const ok=!!good(i);const a=ans[i]===undefined?'(sans réponse)':(q[1]?q[1][ans[i]]:ans[i]);
+  const t=d.splitTextToSize((i+1)+'. '+(ok?'[OK] ':'[X] ')+q[0]+'  Réponse : '+a+(ok?'':'  | Correct : '+(q[1]?q[1][q[2]]:q[3])),170);
+  d.text(t,20,y);y+=t.length*5+2});
+ const fn='Exercice-Word_'+nom+'_'+pre+'.pdf';
+ try{
+  const dl=await claude.use('downloads');
+  if(dl){await dl.save({filename:fn.replace(/\s+/g,'_'),data:new Uint8Array(d.output('arraybuffer'))});return}
+ }catch(e){if(e&&e.code==='declined')return}
+ try{d.save(fn)}catch(e){window.print()}
+ $('info').textContent='Si le téléchargement ne démarre pas, utilisez Imprimer > Enregistrer en PDF.';
+};
+</script></body></html>
