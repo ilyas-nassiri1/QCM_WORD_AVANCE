@@ -29,6 +29,8 @@ label.ko{background:rgba(198,40,40,.15);border-color:var(--ko)}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font:inherit;background:var(--bg);color:var(--tx);resize:vertical}
 .chk{margin-top:8px;padding:8px 14px}
+body.pr>*:not(#rep){display:none!important}
+body.pr .nop{display:none}
 @media print{.bar,.row,#start{display:none}}
 </style></head><body><div class="w">
 
@@ -49,11 +51,12 @@ textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;fo
 <div id="res" class="hide card" style="text-align:center">
 <h1>Résultat</h1><div id="rwho"></div>
 <div class="score" id="sc"></div><div id="msg" class="mu"></div><br>
-<div class="row" style="justify-content:center"><button id="pdf">Exporter en PDF</button><!--<button id="rev" style="background:#667">Voir la correction</button>--></div>
+<div class="row" style="justify-content:center"><button id="pdf">Exporter en PDF</button></div>
 <p class="mu" id="info"></p>
 </div>
 
 </div>
+<div id="rep" class="hide card" style="max-width:760px;margin:0 auto"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const Q=[
@@ -218,12 +221,22 @@ $('pdf').onclick=async()=>{
   const ok=!!good(i);const a=ans[i]===undefined?'(sans réponse)':(q[1]?q[1][ans[i]]:ans[i]);
   const t=d.splitTextToSize((i+1)+'. '+(ok?'[OK] ':'[X] ')+q[0]+'  Réponse : '+a+(ok?'':'  | Correct : '+(q[1]?q[1][q[2]]:q[3])),170);
   d.text(t,20,y);y+=t.length*5+2});
- const fn='Exercice-Word_'+nom+'_'+pre+'.pdf';
+ const fn=('Exercice-Word_'+nom+'_'+pre+'.pdf').replace(/\s+/g,'_'),st=$('info');
+ st.textContent='Préparation du PDF...';
  try{
-  const dl=await claude.use('downloads');
-  if(dl){await dl.save({filename:fn.replace(/\s+/g,'_'),data:new Uint8Array(d.output('arraybuffer'))});return}
- }catch(e){if(e&&e.code==='declined')return}
- try{d.save(fn)}catch(e){window.print()}
- $('info').textContent='Si le téléchargement ne démarre pas, utilisez Imprimer > Enregistrer en PDF.';
+  const dl=window.claude&&await claude.use('downloads');
+  if(dl){await dl.save({filename:fn,data:d.output('blob')});st.textContent='PDF enregistré.';return}
+  st.textContent='Téléchargement direct indisponible : utilisez la version imprimable ci-dessous.';
+ }catch(e){
+  if(e&&e.code==='declined'){st.textContent='Téléchargement annulé.';return}
+  st.textContent='Téléchargement impossible ('+(e&&(e.code||e.message)||e)+'). Utilisez la version imprimable ci-dessous.';
+ }
+ printable();
 };
+function printable(){
+ const r=$('rep');let h='<h2>Exercice Microsoft Word - Résultat</h2><p><b>Nom :</b> '+nom.toUpperCase()+'<br><b>Prénom :</b> '+pre+'<br><b>Date :</b> '+new Date().toLocaleString('fr-FR')+'</p><h2>Note : '+note+' / '+Q.length+' (soit '+(note/Q.length*20).toFixed(1)+' / 20)</h2><ol style="font-size:12px">';
+ Q.forEach((q,i)=>{const ok=!!good(i);const a=ans[i]===undefined?'(sans réponse)':(q[1]?q[1][ans[i]]:ans[i]);h+='<li>'+(ok?'[OK] ':'[X] ')+q[0]+' <i>Réponse : '+a+(ok?'':' | Correct : '+(q[1]?q[1][q[2]]:q[3]))+'</i></li>'});
+ r.innerHTML=h+'</ol><div class="row nop"><button onclick="document.body.classList.add(\'pr\');window.print()">Imprimer / Enregistrer en PDF</button><button onclick="document.body.classList.remove(\'pr\');$(\'rep\').classList.add(\'hide\')" style="background:#667">Fermer</button></div>';
+ r.classList.remove('hide');r.scrollIntoView();
+}
 </script></body></html>
